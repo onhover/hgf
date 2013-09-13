@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/html">
+<head>
+    <title></title>
+    <meta charset="utf-8"/>
+    <style type="text/css">
+        #daohang label{
+            background-color: dodgerblue;
+            color: #ffffff;
+            display: inline-block;
+            width: 140px;
+            height: 30px;
+            text-align: center;
+             line-height: 30px;
+        }
+        #daohang label:hover{
+            cursor: pointer;
+            background-color: brown;
+        }
+        #jia{
+            background-color: dodgerblue;
+            color: #ffffff;
+            display: inline-block;
+            width: 90px;
+            height: 30px;
+            text-align: center;
+            line-height: 30px;
+        }
+        #jia:hover{
+            cursor: pointer;
+            background-color: orange;
+        }
+        #jian{
+            background-color: dodgerblue;
+            color: #ffffff;
+            display: inline-block;
+            width: 90px;
+            height: 30px;
+            text-align: center;
+            line-height: 30px;
+        }
+        #jian:hover{
+            cursor: pointer;
+            background-color: orange;
+        }
+        #ceng{
+            background-color: gainsboro;
+            width: 200px;
+
+        }
+        #neirong{
+
+        }
+        #zhengti{
+
+            background-color: burlywood;
+        }
+    </style>
+</head>
+<body>
+<div id="zhengti">
+    <div id="daohang">
+        <label onclick="addinfo()">添加新信息</label>
+        <div id="sousuo">
+        <select id="index">
+            <option value="查询全部" selected="true">查询全部</option>
+            <option value="姓名查询">姓名查询</option>
+            <option value="原因查询">原因查询</option>
+        </select>
+        <input type="text" value="请输入您要查找的信息" onfocus="this.value=''" id="selectinfo"/>
+        <input type="button" value="查找" onclick="selectinfo()"/>
+        </div>
+    </div>
+    <br/>
+    <div id="neirong">
+        <table border="1">
+            <tr>
+                <th>姓名</th>
+                <th>时间</th>
+                <th>金额</th>
+                <th>原因</th>
+            </tr>
+            <tbody id="info">
+            </tbody>
+        </table>
+    </div>
+    <br/>
+    <div id="jiao">
+        <label>时间查询</label>
+        <input type="date" id="timeinfo"/>
+        <input type="button" value="查询" onclick="timeinfo()"/>
+        <br/>
+        <label>总&nbsp金&nbsp额</label>
+        <input type="text" value="" id="moneyinfo" size="5">
+        <input type="button" value="计算" onclick="moneyadd()"/>
+    </div>
+    <br/>
+    <div id="ceng" style="display: none">
+        <label>姓名</label>
+        <input type="text" id="name" onfocus="this.value=''"/>
+        <br/>
+        <label>时间</label>
+        <input type="date" id="time" onfocus="this.value=''"/>
+        <br/>
+        <label>金额</label>
+        <input type="text" id="money" onfocus="this.value=''"/>
+        <br/>
+        <label>原因</label>
+        <input type="text" id="why" onfocus="this.value=''"/>
+        <br/>
+        <label id="jia" onclick="addxinxi()">添加</label>
+        <label id="jian" onclick="dileinfo()">取消</label>
+    </div>
+</div>
+<script type="text/javascript">
+    function $(eleid){
+        return document.getElementById(eleid);
+    }
+    var intervalid ;
+    var objstatic=0;
+    var divheight =200;
+    function addinfo(){
+        objstatic++;
+        var displayobj = $("ceng");
+        displayobj.style.display="none";
+        if(objstatic%2!=0){
+            displayobj.style.display="";
+        }
+        intervalid = setInterval("hiddenele(objstatic)",7);
+    }
+    function dileinfo(){
+        objstatic++;
+        var displayobj = $("ceng");
+        displayobj.style.display="none";
+        if(objstatic%2!=0){
+            displayobj.style.display="";
+        }
+        intervalid = setInterval("hiddenele(objstatic)",7);
+    }
+    function hiddenele(i){
+        var displayobj = $("ceng");
+        var objw = parseInt(displayobj.style.height);
+        if(i%2!=0){
+            displayobj.style.height = (objw)+"px";
+            if(objw>divheight){
+                displayobj.style.height = divheight;
+                clearInterval(intervalid);
+            }
+        }
+    }
+    //创建数据库和表
+    var temp;
+    function create_info(){
+        temp=openDatabase("zsfinfo","1.0","",1024*1024);
+        temp.transaction(function(tx){
+            var sql='create table t_show(id int,name varchar(100),Date varchar(50),money int,info varchar(200))';
+            tx.executeSql(sql,[],function(){
+
+                    },
+                    function(){
+
+                    })
+        })
+    }
+    create_info();
+    //添加数据
+    function addxinxi(){
+        var name=$("name").value;
+        var time=$("time").value;
+        var money=$("money").value;
+        var why=$("why").value;
+        if(name=='' || time=='' || money=='' || why==''){
+            return;
+        }
+        var info=$("info");
+        temp.transaction(function(tx){
+            var sql='insert into t_show(id,name,Date,money,info) values(?,?,?,?,?)';
+            tx.executeSql(sql,[1,name,time,money,why],function(){
+                    info.innerHTML+="<tr><td>"+name+"</td><td>"+time+"</td><td>"+money+
+                            "</td><td>"+why+"</td></tr>";
+                        objstatic++;
+                        var displayobj = $("ceng");
+                        displayobj.style.display="none";
+                        if(objstatic%2!=0){
+                            displayobj.style.display="";
+                        }
+                        intervalid = setInterval("hiddenele(objstatic)",7);
+
+                    },
+                    function(){
+                         alert("添加失败");
+                    })
+        })
+    }
+    //初始化
+    function lishiinfo(){
+        var info=$("info");
+        temp.transaction(function(tx){
+            var sql='select * from t_show';
+            tx.executeSql(sql,[],function(tx,rs){
+                        var len = rs.rows.length;
+                        for(var i =0;i<len;i++){
+                            info.innerHTML+="<tr><td>"+rs.rows.item(i).name+
+                                    "</td><td>"+rs.rows.item(i).Date+"</td><td>"+
+                            rs.rows.item(i).money+"</td><td>"+rs.rows.item(i).info+"</td></tr>";
+                        }
+                    },
+                    function(tx,rs){
+                        alert("查询失败");
+                    })
+        })
+    }
+    lishiinfo();
+    //属性查询
+    function selectinfo(){
+        var info=$("info");
+        var selectinfo=$("selectinfo").value;
+        var tempinfo="%"+selectinfo+"%";
+        var index_value=$("index").options[$("index").selectedIndex].value;
+        if(index_value=="姓名查询"){
+            temp.transaction(function(tx){
+                var sql='select * from t_show where name like ?';
+                tx.executeSql(sql,[tempinfo],function(tx,rs){
+                            var len = rs.rows.length;
+                            info.innerHTML="";
+                            for(var i =0;i<len;i++){
+
+                                info.innerHTML+="<tr><td>"+rs.rows.item(i).name+
+                                        "</td><td>"+rs.rows.item(i).Date+"</td><td>"+
+                                        rs.rows.item(i).money+"</td><td>"+rs.rows.item(i).info+"</td></tr>";
+                            }
+                        },
+                        function(tx,rs){
+                            alert("查询失败");
+                        })
+            })
+        }else if(index_value=="原因查询"){
+            temp.transaction(function(tx){
+                var sql='select * from t_show where info=?';
+                tx.executeSql(sql,[selectinfo],function(tx,rs){
+                            var len = rs.rows.length;
+                            info.innerHTML="";
+                            for(var i =0;i<len;i++){
+                                info.innerHTML+="<tr><td>"+rs.rows.item(i).name+
+                                        "</td><td>"+rs.rows.item(i).Date+"</td><td>"+
+                                        rs.rows.item(i).money+"</td><td>"+rs.rows.item(i).info+"</td></tr>";
+                            }
+                        },
+                        function(tx,rs){
+                            alert("查询失败");
+                        })
+            })
+        }else if(index_value=="查询全部"){
+            info.innerHTML="";
+            lishiinfo();
+        }
+    }
+    //时间查询
+    function timeinfo(){
+        var info=$("info");
+        var timeinfo=$("timeinfo").value;
+        temp.transaction(function(tx){
+            var sql='select * from t_show where Date=?';
+            tx.executeSql(sql,[timeinfo],function(tx,rs){
+                        var len = rs.rows.length;
+                        info.innerHTML="";
+                        for(var i =0;i<len;i++){
+                            info.innerHTML+="<tr><td>"+rs.rows.item(i).name+
+                                    "</td><td>"+rs.rows.item(i).Date+"</td><td>"+
+                                    rs.rows.item(i).money+"</td><td>"+rs.rows.item(i).info+"</td></tr>";
+                        }
+                    },
+                    function(tx,rs){
+                        alert("查询失败");
+                    })
+        })
+
+    }
+    //计算总金额
+    function moneyadd(){
+        var moneyinfo=$("moneyinfo");
+        temp.transaction(function(tx){
+            var sql='select sum(money) as a from t_show';
+            tx.executeSql(sql,[],function(tx,rs){
+                        moneyinfo.value=rs.rows.item(0).a;
+                    },
+                    function(tx,rs){
+                        alert("计算失败");
+                    })
+        })
+    }
+</script>
+</body>
+</html>
+//此为一个简单的基于HTML5本地数据库所做的数据存储
